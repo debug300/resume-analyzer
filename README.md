@@ -22,3 +22,8 @@ job seekers optimize their resumes.
 ```bash
 pip install -r requirements.txt
 python app.py
+
+
+## 🌐 Live Demo
+https://ai-resume-analyzer-0ziz.onrender.com/
+
