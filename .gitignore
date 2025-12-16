@@ -1,0 +1,5 @@
+aste THIS inside .gitignore:
+venv/
+__pycache__/
+uploads/
+*.pyc
