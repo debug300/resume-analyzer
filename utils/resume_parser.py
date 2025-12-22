@@ -1,27 +1,18 @@
-import re
 import pdfplumber
+import re
 
-
-def extract_text_from_pdf(pdf_path: str) -> str:
+def extract_text_from_pdf(pdf_path):
     text = ""
-    reader = PdfReader(pdf_path)
-
-    for page in reader.pages:
-        page_text = page.extract_text()
-        if page_text:
-            text += page_text + " "
-
-    return text.lower()
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            page_text = page.extract_text()
+            if page_text:
+                text += page_text + "\n"
+    return text
 
 
-def clean_text(text: str) -> str:
-    """
-    Cleans text for ATS comparison
-    - lowercase
-    - remove special chars
-    - normalize spaces
-    """
+def clean_text(text):
     text = text.lower()
     text = re.sub(r"[^a-z0-9\s]", " ", text)
-    text = re.sub(r"\s+", " ", text).strip()
-    return text
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
