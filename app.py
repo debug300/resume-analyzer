@@ -13,7 +13,6 @@ UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-
 # ---------- Canonical Skill List ----------
 SKILLS = [
     "python", "java", "c", "c++", "sql", "flask", "django",
@@ -32,7 +31,11 @@ def index():
         jd_text = request.form.get("jd", "")
 
         if not resume_file or resume_file.filename == "":
-            return render_template("index.html", score=None, error="Please upload a resume")
+            return render_template(
+                "index.html",
+                score=None,
+                error="Please upload a resume"
+            )
 
         # ---------- Save Resume ----------
         resume_path = os.path.join(app.config["UPLOAD_FOLDER"], resume_file.filename)
@@ -50,22 +53,23 @@ def index():
         missing = jd_skills - resume_skills
 
         # ---------- ATS Score ----------
-       ats_result = calculate_ats_score(
-    resume_text,
-    jd_clean,
-    matched,
-    jd_skills
-)
+        ats_result = calculate_ats_score(
+            resume_text,
+            jd_clean,
+            matched,
+            jd_skills
+        )
 
-return render_template(
-    "index.html",
-    score=ats_result["final_score"],
-    skill_score=ats_result["skill_score"],
-    similarity_score=ats_result["similarity_score"],
-    keyword_score=ats_result["keyword_score"],
-    matched=matched,
-    missing=missing
-)
+        return render_template(
+            "index.html",
+            score=ats_result["final_score"],
+            skill_score=ats_result["skill_score"],
+            similarity_score=ats_result["similarity_score"],
+            keyword_score=ats_result["keyword_score"],
+            matched=matched,
+            missing=missing
+        )
+
     return render_template("index.html", score=None)
 
 
