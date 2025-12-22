@@ -1,9 +1,10 @@
 import os
 from flask import Flask, render_template, request
 
-from utils.resume_parser import extract_text_from_pdf, clean_text
+from utils.resume_parser import extract_text_from_pdf
 from utils.skill_extractor import extract_skills
 from utils.ats_scorer import calculate_ats_score
+from utils.text_cleaner import clean_text
 
 app = Flask(__name__)
 
@@ -15,12 +16,13 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # ---------- Canonical Skill List ----------
 SKILLS = [
-    "python", "java", "c", "c++", "sql", "flask", "django",
-    "machine learning", "deep learning", "ai",
-    "git", "docker", "kubernetes",
+    "python", "java", "c", "c++", "sql",
+    "spring boot", "microservices", "rest api",
+    "docker", "kubernetes",
     "aws", "azure", "gcp",
-    "spring boot", "microservices",
-    "rest api", "data structures", "algorithms"
+    "git",
+    "machine learning", "deep learning", "ai",
+    "data structures", "algorithms"
 ]
 
 
@@ -31,29 +33,25 @@ def index():
         jd_text = request.form.get("jd", "")
 
         if not resume_file or resume_file.filename == "":
-            return render_template(
-                "index.html",
-                score=None,
-                error="Please upload a resume"
-            )
+            return render_template("index.html", error="Please upload a resume")
 
-        # ---------- Save Resume ----------
+        # Save resume
         resume_path = os.path.join(app.config["UPLOAD_FOLDER"], resume_file.filename)
         resume_file.save(resume_path)
 
-        # ---------- Clean Text ----------
+        # Clean text
         resume_text = clean_text(extract_text_from_pdf(resume_path))
         jd_clean = clean_text(jd_text)
 
-        # ---------- Skill Extraction ----------
+        # Skill extraction
         resume_skills = extract_skills(resume_text, SKILLS)
         jd_skills = extract_skills(jd_clean, SKILLS)
 
         matched = resume_skills & jd_skills
         missing = jd_skills - resume_skills
 
-        # ---------- ATS Score ----------
-        ats_result = calculate_ats_score(
+        # ATS score
+        ats = calculate_ats_score(
             resume_text,
             jd_clean,
             matched,
@@ -62,15 +60,15 @@ def index():
 
         return render_template(
             "index.html",
-            score=ats_result["final_score"],
-            skill_score=ats_result["skill_score"],
-            similarity_score=ats_result["similarity_score"],
-            keyword_score=ats_result["keyword_score"],
+            score=ats["final_score"],
+            skill_score=ats["skill_score"],
+            similarity_score=ats["similarity_score"],
+            keyword_score=ats["keyword_score"],
             matched=matched,
             missing=missing
         )
 
-    return render_template("index.html", score=None)
+    return render_template("index.html")
 
 
 if __name__ == "__main__":
