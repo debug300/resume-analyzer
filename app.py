@@ -29,8 +29,9 @@ def index():
         resume_text = extract_text_from_pdf(resume_path)
         jd_clean = clean_text(jd_text)
 
-        resume_skills = extract_skills(resume_text)
-        jd_skills = extract_skills(jd_clean)
+        resume_skills = extract_skills(resume_text, SKILLS)
+        jd_skills = extract_skills(jd_clean, SKILLS)
+
 
         matched = resume_skills & jd_skills
         missing = jd_skills - resume_skills
