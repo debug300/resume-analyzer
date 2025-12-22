@@ -1,28 +1,27 @@
-import pdfplumber
 import re
+from PyPDF2 import PdfReader
 
-def extract_text_from_pdf(pdf_path):
+
+def extract_text_from_pdf(pdf_path: str) -> str:
     text = ""
+    reader = PdfReader(pdf_path)
 
-    with pdfplumber.open(pdf_path) as pdf:
-        for page in pdf.pages:
-            page_text = page.extract_text()
-            if page_text:
-                text += page_text + "\n"
+    for page in reader.pages:
+        page_text = page.extract_text()
+        if page_text:
+            text += page_text + " "
 
-    return clean_text(text)
+    return text.lower()
 
 
-def clean_resume_for_ats(text):
-    ignore_keywords = [
-        "interests", "hobbies", "languages", "objective"
-    ]
-
-    lines = text.lower().split("\n")
-    filtered = [
-        line for line in lines
-        if not any(word in line for word in ignore_keywords)
-    ]
-
-    return " ".join(filtered)
-
+def clean_text(text: str) -> str:
+    """
+    Cleans text for ATS comparison
+    - lowercase
+    - remove special chars
+    - normalize spaces
+    """
+    text = text.lower()
+    text = re.sub(r"[^a-z0-9\s]", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
