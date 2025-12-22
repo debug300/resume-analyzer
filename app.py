@@ -7,7 +7,7 @@ from utils.ats_scorer import calculate_ats_score
 
 app = Flask(__name__)
 
-# ✅ Absolute uploads path (FIXES RENDER)
+# ✅ Absolute uploads path      (FIXES RENDER)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
