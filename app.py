@@ -31,7 +31,9 @@ def index():
         resume_path = os.path.join(app.config["UPLOAD_FOLDER"], resume_file.filename)
         resume_file.save(resume_path)
 
-        resume_text = extract_text_from_pdf(resume_path)
+       raw_resume = extract_text_from_pdf(resume_path)
+        resume_text = clean_resume_for_ats(raw_resume)
+
         jd_clean = clean_text(jd_text)
 
         resume_skills = extract_skills(resume_text, SKILLS)

@@ -13,8 +13,16 @@ def extract_text_from_pdf(pdf_path):
     return clean_text(text)
 
 
-def clean_text(text):
-    text = text.lower()
-    text = re.sub(r'[^a-z0-9\s]', ' ', text)
-    text = re.sub(r'\s+', ' ', text)
-    return text.strip()
+def clean_resume_for_ats(text):
+    ignore_keywords = [
+        "interests", "hobbies", "languages", "objective"
+    ]
+
+    lines = text.lower().split("\n")
+    filtered = [
+        line for line in lines
+        if not any(word in line for word in ignore_keywords)
+    ]
+
+    return " ".join(filtered)
+
