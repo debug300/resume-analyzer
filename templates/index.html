@@ -3,52 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <title>AI Resume Analyzer</title>
-    <style>
-        body { font-family: Arial, sans-serif; background:#f5f7fa; }
-        .container { width:70%; margin:auto; background:white; padding:25px; border-radius:8px; }
-        .bar { background:#e9ecef; border-radius:8px; overflow:hidden; }
-        .fill { 
-    width: var(--score);
-    background: #198754;
-    color: white;
-    padding: 6px;
-    text-align: center;
-    border-radius: 8px;
-}
 
-        .tag { padding:6px 12px; border-radius:20px; margin:4px; display:inline-block; }
-        .green { background:#198754; color:white; }
-        .red { background:#dc3545; color:white; }
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        h2, h3, h4 {
+            margin-top: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        input[type="file"] {
+            margin-top: 10px;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 25px;
+            background: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0b5ed7;
+        }
+
+        .bar {
+            width: 100%;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .fill {
+            height: 28px;
+            width: 0;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            line-height: 28px;
+            border-radius: 10px;
+            transition: width 1.5s ease-in-out;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 6px 12px;
+            margin: 5px;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+
+        .tag.green {
+            background: #198754;
+            color: white;
+        }
+
+        .tag.red {
+            background: #dc3545;
+            color: white;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
     </style>
 </head>
+
 <body>
 
 <div class="container">
-    <h2>ATS-based Resume & Job Description Matching</h2>
+    <h2>AI Resume Analyzer</h2>
+    <p>ATS-based Resume & Job Description Matching</p>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
 
     <form method="POST" enctype="multipart/form-data">
-        <label>Upload Resume (PDF)</label><br><br>
+        <label><b>Upload Resume (PDF)</b></label><br>
         <input type="file" name="resume" required><br><br>
 
-        <label>Job Description</label><br><br>
-        <textarea name="jd" rows="8" style="width:100%;" required></textarea><br><br>
+        <label><b>Job Description</b></label><br>
+        <textarea name="jd" placeholder="Paste job description here..." required></textarea><br>
 
         <button type="submit">Analyze Resume</button>
     </form>
 
-    {% if error %}
-        <p style="color:red;">{{ error }}</p>
-    {% endif %}
-
     {% if score %}
         <hr>
-        <h3>ATS Match Score</h3>
+
+        <h3>
+            ATS Match Score
+            <span title="ATS score is calculated using skill match (50%), content similarity (40%), and keyword coverage (10%).">
+                ℹ️
+            </span>
+        </h3>
 
         <div class="bar">
-            <div class="fill" style="--score: {{ score }}%;">
+            <div class="fill" id="scoreBar"
+                 data-score="{{ score | default(0) }}">
                 {{ score }}%
-            </div>
-
+        </div>
+        
         <h4>Score Breakdown</h4>
         <ul>
             <li><b>Skill Match:</b> {{ skill_score }}%</li>
@@ -57,16 +139,47 @@
         </ul>
 
         <h4 style="color:green;">Matched Skills</h4>
-        {% for s in matched %}
-            <span class="tag green">{{ s }}</span>
+        {% for skill in matched %}
+            <span class="tag green">{{ skill }}</span>
         {% endfor %}
 
         <h4 style="color:red;">Missing Skills</h4>
-        {% for s in missing %}
-            <span class="tag red">{{ s }}</span>
+        {% for skill in missing %}
+            <span class="tag red">{{ skill }}</span>
         {% endfor %}
+
+        {% if missing %}
+            <h4>Resume Improvement Tips</h4>
+            <ul>
+                {% for skill in missing %}
+                    <li>Add projects or experience mentioning <b>{{ skill }}</b></li>
+                {% endfor %}
+            </ul>
+        {% endif %}
     {% endif %}
 </div>
+
+<script>
+    
+    const bar = document.getElementById("scoreBar");
+
+    if (bar) {
+        const score = parseFloat(bar.dataset.score);
+
+        if (score < 40) {
+            bar.style.background = "#dc3545";
+        } else if (score < 70) {
+            bar.style.background = "#ffc107";
+            bar.style.color = "#000";
+        } else {
+            bar.style.background = "#198754";
+        }
+
+        setTimeout(() => {
+            bar.style.width = score + "%";
+        }, 200);
+    }
+</script>
 
 </body>
 </html>
