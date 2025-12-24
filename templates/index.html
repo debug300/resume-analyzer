@@ -1,185 +1,79 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>AI Resume Analyzer</title>
-
+    <title>ATS Resume Analyzer</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f7fb;
-            margin: 0;
-            padding: 0;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 40px auto;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        h2, h3, h4 {
-            margin-top: 20px;
-        }
-
-        textarea {
-            width: 100%;
-            height: 150px;
-            padding: 10px;
-            font-size: 14px;
-        }
-
-        input[type="file"] {
-            margin-top: 10px;
-        }
-
-        button {
-            margin-top: 20px;
-            padding: 10px 25px;
-            background: #0d6efd;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #0b5ed7;
-        }
-
-        .bar {
-            width: 100%;
-            background: #e9ecef;
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 15px 0;
-        }
-
-        .fill {
-            height: 28px;
-            width: 0;
-            color: white;
-            font-weight: bold;
-            text-align: center;
-            line-height: 28px;
-            border-radius: 10px;
-            transition: width 1.5s ease-in-out;
-        }
-
-        .tag {
-            display: inline-block;
-            padding: 6px 12px;
-            margin: 5px;
-            border-radius: 15px;
-            font-size: 14px;
-        }
-
-        .tag.green {
-            background: #198754;
-            color: white;
-        }
-
-        .tag.red {
-            background: #dc3545;
-            color: white;
-        }
-
-        .error {
-            color: red;
-            font-weight: bold;
-        }
+        body { font-family: Arial; background:#f4f6f9; }
+        .container { width:70%; margin:auto; background:white; padding:25px; border-radius:10px; }
+        .bar { background:#ddd; border-radius:20px; overflow:hidden; }
+        .fill { height:30px; width:0; color:white; text-align:center; line-height:30px; font-weight:bold; transition:1.2s; }
+        .tag { padding:6px 12px; margin:4px; border-radius:15px; display:inline-block; color:white; }
+        .green { background:#28a745; }
+        .red { background:#dc3545; }
     </style>
 </head>
 
 <body>
-
 <div class="container">
-    <h2>AI Resume Analyzer</h2>
-    <p>ATS-based Resume & Job Description Matching</p>
+    <h2>AI ATS Resume Analyzer</h2>
 
     {% if error %}
-        <p class="error">{{ error }}</p>
+        <p style="color:red">{{ error }}</p>
     {% endif %}
 
     <form method="POST" enctype="multipart/form-data">
-        <label><b>Upload Resume (PDF)</b></label><br>
         <input type="file" name="resume" required><br><br>
-
-        <label><b>Job Description</b></label><br>
-        <textarea name="jd" placeholder="Paste job description here..." required></textarea><br>
-
-        <button type="submit">Analyze Resume</button>
+        <textarea name="jd" rows="6" style="width:100%" placeholder="Paste job description..." required></textarea><br><br>
+        <button type="submit">Analyze</button>
     </form>
 
     {% if score %}
         <hr>
-
-        <h3>
-            ATS Match Score
-            <span title="ATS score is calculated using skill match (50%), content similarity (40%), and keyword coverage (10%).">
-                ℹ️
-            </span>
-        </h3>
+        <h3>ATS Score</h3>
 
         <div class="bar">
-            <div class="fill" id="scoreBar"
-                 data-score="{{ score | default(0) }}">
-                {{ score }}%
+            <div class="fill" id="scoreBar" data-score="{{ score }}">{{ score }}%</div>
         </div>
-        
-        <h4>Score Breakdown</h4>
+
         <ul>
-            <li><b>Skill Match:</b> {{ skill_score }}%</li>
-            <li><b>Content Similarity:</b> {{ similarity_score }}%</li>
-            <li><b>Keyword Coverage:</b> {{ keyword_score }}%</li>
+            <li>Skill Match: {{ skill_score }}%</li>
+            <li>Content Similarity: {{ similarity_score }}%</li>
+            <li>Keyword Coverage: {{ keyword_score }}%</li>
         </ul>
 
-        <h4 style="color:green;">Matched Skills</h4>
-        {% for skill in matched %}
-            <span class="tag green">{{ skill }}</span>
+        <h4>Matched Skills</h4>
+        {% for s in matched %}
+            <span class="tag green">{{ s }}</span>
         {% endfor %}
 
-        <h4 style="color:red;">Missing Skills</h4>
-        {% for skill in missing %}
-            <span class="tag red">{{ skill }}</span>
+        <h4>Missing Skills</h4>
+        {% for s in missing %}
+            <span class="tag red">{{ s }}</span>
         {% endfor %}
 
-        {% if missing %}
-            <h4>Resume Improvement Tips</h4>
-            <ul>
-                {% for skill in missing %}
-                    <li>Add projects or experience mentioning <b>{{ skill }}</b></li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <h4>Why ATS Deducted Points</h4>
+        <ul>
+            {% for r in reasons %}
+                <li>{{ r }}</li>
+            {% endfor %}
+        </ul>
+
+        <h4>How to Improve</h4>
+        <ul>
+            {% for tip in suggestions %}
+                <li>{{ tip }}</li>
+            {% endfor %}
+        </ul>
     {% endif %}
 </div>
 
 <script>
-    
     const bar = document.getElementById("scoreBar");
-
     if (bar) {
         const score = parseFloat(bar.dataset.score);
-
-        if (score < 40) {
-            bar.style.background = "#dc3545";
-        } else if (score < 70) {
-            bar.style.background = "#ffc107";
-            bar.style.color = "#000";
-        } else {
-            bar.style.background = "#198754";
-        }
-
-        setTimeout(() => {
-            bar.style.width = score + "%";
-        }, 200);
+        bar.style.background = score < 40 ? "#dc3545" : score < 70 ? "#ffc107" : "#28a745";
+        setTimeout(() => bar.style.width = score + "%", 200);
     }
 </script>
-
 </body>
 </html>
